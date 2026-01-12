@@ -1,6 +1,7 @@
 ---
 layout: home
 title: Home
+permalink: /
 ---
 
 # Game Engine Development Blog
