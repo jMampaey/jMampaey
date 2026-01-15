@@ -3,6 +3,15 @@ layout: post
 title: "Animation Blending"
 date: 2026-01-15
 ---
+<style>
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
+}
+</style>
+
 **1501 words**
 
 # **74 words** Introduction
