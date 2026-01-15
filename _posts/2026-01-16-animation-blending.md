@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Animation Blending"
-date: 2026-01-12
+date: 2026-01-15
 ---
 
 # Introduction (150-200 words)
