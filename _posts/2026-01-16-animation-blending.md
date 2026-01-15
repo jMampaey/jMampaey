@@ -56,7 +56,7 @@ Because this core was rock-solid and well-tested, I could layer complexity witho
 **The takeaway:** Nail single animation playback before touching blending. Nail two-pose blending before building blend spaces. Nail blend spaces before adding state machines. Each layer depends on the one below being bulletproof. Rush the foundation and you'll spend more time debugging basics than building features.
 
 Start simple. Prove it works. Then add one layer of complexity at a time.
-<video controls>
+<video autoplay loop muted>
   <source src="{{ '/assets/videos/single_animation.mp4' | relative_url }}" type="video/mp4">
   Your browser does not support the video tag.
 </video>
@@ -67,12 +67,14 @@ The moment I decided to split BlendMotion from the game engine, the project tran
 
 **Game Engine** handles everything else: loading GLTF files, managing 'Animator' components, rendering debug visualizations, handling input for character controllers. It uses BlendMotion as a library, just like it uses GLM for math or EnTT for the ECS.
 
+![Separation of Concerns]({{ '/assets/images/separation_of_concerns.png' | relative_url }})
+
 This separation paid immediate dividends:
 - **Debugging was surgical.** Animation math bugs stayed in BlendMotion. Rendering issues stayed in the engine. Clean separation, clear boundaries.
 - **Optimization was targeted.** When profiling revealed animation evaluation as a bottleneck I could focus entirely on BlendMotion's math without touching engine code. This separation meant I could reason about performance in isolation.
 - **Design decisions were clearer.** Should root motion extraction live in BlendMotion or in the engine? The boundary forced me to think: "Is this animation math or engine integration?" That clarity prevented the architectural muddle that kills projects.
 
-The cost? An interface boundary. BlendMotion returns 'std::vector<glm::mat4>', the engine consumes it. But that boundary is where clarity lives - it forces explicit contracts instead of tangled dependencies.
+The cost? An interface boundary. BlendMotion returns `std::vector<glm::mat4>`, the engine consumes it. But that boundary is where clarity lives - it forces explicit contracts instead of tangled dependencies.
 
 **The takeaway:** Framework-agnostic design isn't about theoretical portability. It's about forcing yourself to separate "what" (animation mathematics) from "how" (engine integration). When those concerns blur, everything becomes harder to understand, debug and extend.
 
@@ -99,6 +101,30 @@ FinalPose = Blend(locomotionLayer, upperBodyLayer, masks)
 ```
 
 This architecture scaled beautifully. Need a character to run, aim, and react to damage? Three layers - with three masks. Need weapon swapping mid-animation? Add a fourth layer that only affects the weapon hand. Each layer is independent - they don't know about each other, they just evaluate their state machines and output transforms.
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0;">
+  <video autoplay loop muted style="flex: 1; min-width: 250px; max-width: 100%;">
+    <source src="{{ '/assets/videos/walk_animation.mp4' | relative_url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  
+  <video autoplay loop muted style="flex: 1; min-width: 250px; max-width: 100%;">
+    <source src="{{ '/assets/videos/hurt_animation.mp4' | relative_url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<p style="text-align: center; margin: 1rem 0;">
+These two videos show the separate animations that are played on top of each other with bone masking.</p>
+
+<div style="display: flex; justify-content: center; margin: 1rem 0;">
+  <video autoplay loop muted style="width: 100%; max-width: 500px;">
+    <source src="{{ '/assets/videos/hurt_and_walk_animation.mp4' | relative_url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+The bone mask ignores the right arm and the legs, so the movement of the walk animation still looks okay
 
 **The takeaway:** Simple blending gets you far, but complex character animation needs layering with bone masks. Don't try to solve "walk while aiming" with clever blend weights - solve it with proper architectural separation. Each layer handles one concern, and the composition system brings them together.
 
