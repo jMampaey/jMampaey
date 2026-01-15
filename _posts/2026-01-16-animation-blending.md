@@ -47,8 +47,10 @@ Because this core was rock-solid and well-tested, I could layer complexity witho
 **The takeaway:** Nail single animation playback before touching blending. Nail two-pose blending before building blend spaces. Nail blend spaces before adding state machines. Each layer depends on the one below being bulletproof. Rush the foundation and you'll spend more time debugging basics than building features.
 
 Start simple. Prove it works. Then add one layer of complexity at a time.
-<video controls src="../../../assets/videos/single_animation.mp4" title="Single Animation"></video>
-
+<video controls>
+  <source src="{{ '/assets/videos/single_animation.mp4' | relative_url }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 ## **281 words** Lesson 2: Separation of Concerns isn't optional
 The moment I decided to split BlendMotion from the game engine, the project transformed from "my animation system" into "a reusable animation library." This wasn't just good architecture - it was a forcing function that made every design decision better.
 
