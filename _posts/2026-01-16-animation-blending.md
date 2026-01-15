@@ -254,12 +254,18 @@ This recursive traversal accumulates parent transforms down the hierarchy. The o
 #### The Architecture in Action
 This pipeline demonstrates the three lessons: foundational simplicity (`ComputeBoneTransform` never changed), clean separation (BlendMotion vs engine), and independent layering (simple composition loop). Adding new layers requires zero changes to existing code.
 
+<video autoplay loop muted>
+    <source src="{{ '/assets/videos/evaluate_pipeline.mp4' | relative_url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  This video showcases multiple layers in action together.
+
 # **125 words** Results & What's next
 The end result is a system running 5 concurrent state machines with per-bone masking, handling smooth locomotion blending, independent upper/lower body animations, and root motion extraction - all while managing more than 60fps. Performance profiling revealed that proper architecture matters more than micro-optimizations: clean separation and efficient evaluation paths gave far better gains than chasing cache-friendly data layouts.
 
 The technical foundation supports multiple blend space evaluation methods including triangulation, RBF networks, and various 2D interpolation approaches.
 
-Upcoming deep-dive posts will cover blend space mathematics, root motion extraction, state machine architecture, and performance optimization lessons.
+Upcoming deep-dive posts will cover blend space mathematics, root motion extraction and state machine architecture.
 
 The three lessons - start simple, separate concerns, layer complexity - apply far beyond animation systems. They're architectural principles for any complex system where "just add another feature" leads to collapse.
 
@@ -268,4 +274,20 @@ Building BlendMotion taught me that **architecture decisions compound**. Startin
 
 For fellow students tackling complex systems: These principles apply whether you're building animation systems, physics engines, or rendering pipelines. The temptation to architect for the final system upfront is strong, but resist it. Build the simplest thing that works. Prove it's solid, then add one layer of complexity at a time.
 
-# References
+![buas logo]({{ '/assets/images/buas.png' | relative_url }})
+
+## References
+
+**Tools & Platforms:**
+- [Mixamo - Character Animation Platform](https://www.mixamo.com/)
+
+**Technical Articles:**
+- Platis, D. (2020). ["Break the Coupling in C++"](https://platis.solutions/blog/2020/11/01/break-the-coupling-cpp/)
+- AnimCoding. ["Animation Tech Intro Part 1: Skinning"](https://animcoding.com/post/animation-tech-intro-part-1-skinning/)
+- PlayCanvas. ["Animation Layer Masks and Blending"](https://blog.playcanvas.com/anim-layer-masks-and-blending/)
+
+**Game Engine Documentation:**
+- Epic Games. ["Blend Spaces in Unreal Engine"](https://docs.unrealengine.com/5.3/en-US/blend-spaces-in-unreal-engine/)
+
+**Conference Talks:**
+- Buttner, M. (2016). ["Motion Matching and The Road to Next-Gen Animation" (GDC)](https://www.gdcvault.com/play/1023280/Motion-Matching-and-The-Road)
