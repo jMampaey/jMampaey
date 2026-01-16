@@ -31,8 +31,8 @@ The result? A system running 4 concurrent state machines with per-bone masking, 
 
 # The three lessons I wish I had known before starting
 
-### **Lesson 1: Start Simple - Build the foundation right**
-I didn't start with 4 state machines and bone masking. I started with: "Can I load a skeleton and play one animation?" That's it. No blending, no transitions, no layers - just parse the data. evaluate poses, at time T, and apply transforms to bones.
+### **Lesson 1: Start Simple - Build the Foundation Right**
+I didn't start with 4 state machines and bone masking. I started with: "Can I load a skeleton and play one animation?" That's it. No blending, no transitions, no layers - just parse the data. evaluate poses at time T, and apply transforms to bones.
 
 This sounds obvious, but it's tempting to architect for the complex system you *want* rather than the simple system you *need first*. I've seen projects (including my own earlier attempts) collapse under the weight of premature abstraction - designing for "What if we need 10 blend layers?" before proving you blend 2 poses correctly.
 
@@ -52,7 +52,7 @@ AnimationEvaluator::Evaluate(*skeleton, animator.animationState, result);
 // Apply the final bone matrices
 animator.boneMatrices = result.boneMatrices;
 ```
-This is the entire update loop for simple animation playback. No state machines, no blend trees - just time advancement and pose evaluation. The 'Animator' component handles this path. while entities needing complex behavior add an 'AnimationController' component that takes over with state machines.
+This is the entire update loop for simple animation playback. No state machines, no blend trees - just time advancement and pose evaluation. The 'Animator' component handles this path, while entities needing complex behavior add an 'AnimationController' component that takes over with state machines.
 
 Because this core was rock-solid and well-tested, I could layer complexity without constantly backtracking to fix fundamental issues. State machines? They just manage multiple 'AnimationState' instances. Blend spaces? They call 'Evaluate()' multiple times and blend the results. The foundation never changed.
 
@@ -76,7 +76,7 @@ The moment I decided to split BlendMotion from the game engine, the project tran
 ![Separation of Concerns]({{ '/assets/images/separation_of_concerns.png' | relative_url }})
 
 This separation paid immediate dividends:
-- **Debugging was surgical.** Animation math bugs stayed in BlendMotion. Rendering issues stayed in the engine. Clean separation, clear boundaries.
+- **Debugging was surgical.** Animation bugs stayed in BlendMotion. Rendering issues stayed in the engine. Clean separation, clear boundaries.
 - **Optimization was targeted.** When profiling revealed animation evaluation as a bottleneck I could focus entirely on BlendMotion's math without touching engine code. This separation meant I could reason about performance in isolation.
 - **Design decisions were clearer.** Should root motion extraction live in BlendMotion or in the engine? The boundary forced me to think: "Is this animation math or engine integration?" That clarity prevented the architectural muddle that kills projects.
 
@@ -122,7 +122,7 @@ This architecture scaled beautifully. Need a character to run, aim, and react to
   </video>
 </div>
 
-*These two videos show the separate animations that are played on top of each other with bone masking.*
+*Layer 0 (left): Full-body walk animation. Layer 1 (right): Upper-body hurt reaction. Below shows them composed with bone masking.*
 
 <div style="display: flex; justify-content: center; margin: 1rem 0;">
   <video autoplay loop muted style="width: 100%; max-width: 500px;">
@@ -151,7 +151,7 @@ Every frame, the animation system updates all state machines (handling transitio
 
 <br>
 
-#### **Step 1: Orchestrating Layer Composition**
+#### **Step 1: Layer Composition**
 The `Evaluate()` function orchestrates the entire process:
 ```cpp
 bool AnimationLayerController::Evaluate(...) {
@@ -266,7 +266,7 @@ void AnimationEvaluator::ComputeBoneTransform(const Skeleton& _skeleton,
     }
 }
 ```
-This recursive traversal accumulates parent transforms down the hierarchy. The offset matrix converts world space to skinning space for GPU rendering.
+This recursive traversal accumulates parent transforms down the hierarchy. The offset matrix (inverse bind pose) converts world space to skinning space for GPU rendering.
 
 <br>
 
@@ -277,12 +277,12 @@ This pipeline demonstrates the three lessons: foundational simplicity (`ComputeB
     <source src="{{ '/assets/videos/evaluate_pipeline.mp4' | relative_url }}" type="video/mp4">
     Your browser does not support the video tag.
   </video>
-  *This video showcases multiple layers in action together.*
+    *Character playing idle animation with layered upper body gesture, demonstrating the complete evaluation pipeline in action.*
 
 <br>
 
 # Results & What's next
-The end result is a system running 4 concurrent state machines with per-bone masking, handling smooth locomotion blending, independent upper/lower body animations, and root motion extraction - all while managing more than 60fps. Performance profiling revealed that proper architecture matters more than micro-optimizations: clean separation and efficient evaluation paths gave far better gains than chasing cache-friendly data layouts.
+The end result is a system running 4 concurrent state machines with per-bone masking, handling smooth locomotion blending, independent upper/lower body animations, and root motion extraction - all while maintaining 60fps (average evaluation time never goes over 2.1ms per frame). Performance profiling revealed that proper architecture matters more than micro-optimizations: clean separation and efficient evaluation paths gave far better gains than chasing cache-friendly data layouts.
 
 The technical foundation supports multiple blend space evaluation methods including triangulation, RBF networks, and various 2D interpolation approaches.
 
@@ -316,3 +316,8 @@ For fellow students tackling complex systems: These principles apply whether you
 
 **Conference Talks:**
 - Buttner, M. (2016). ["Motion Matching and The Road to Next-Gen Animation" (GDC)](https://www.gdcvault.com/play/1023280/Motion-Matching-and-The-Road)
+
+**Libraries Used:**
+- [GLM - OpenGL Mathematics](https://github.com/g-truc/glm)
+- [EnTT - Entity Component System](https://github.com/skypjack/entt)
+- [Dear ImGui - Immediate Mode GUI](https://github.com/ocornut/imgui)
