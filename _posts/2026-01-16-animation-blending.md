@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Animation Blending"
-date: 2026-01-15
+date: 2026-01-16
 ---
 <style>
 video {
@@ -12,24 +12,28 @@ video {
 }
 </style>
 
-**1501 words**
+# Introduction
+<video autoplay loop muted>
+  <source src="{{ '/assets/videos/impressive_video.mp4' | relative_url }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+This character is simultaneously running 4 different state machines with bone masking, blending between locomotion while playing distinct upper and lower body animations - all powered by a custom animation system built from scratch. Building this taught me 3 critical lessons: start simple, separate your concerns and layer your complexity. The challenge was designing BlendMotion - a pure animation mathematics library - that could integrate into any C++ game engine without forcing architectural compromises. 
 
-# **74 words** Introduction
-[ADD IMPRESSIVE FINAL VIDEO OF PRODUCT]
+<br>
 
-This character is simultaneously running 5 different state machines with bone masking, blending between locomotion while playing distinct upper and lower body animations - all powered by a custom animation system built from scratch. Building this taught me 3 critical lessons: start simple, separate your concerns and layer your complexity. The challenge was designing BlendMotion - a pure animation mathematics library - that could integrate into any C++ game engine without forcing architectural compromises. 
-
-# **175 words** Why this is hard (and worth doing right)
+# Why this is hard (and worth doing right)
 Animation systems are deceptively complex. On the surface, they're just "play animation A, blend to Animation B" - But production systems need to handle simultaneous animations across different body parts, smooth transitions between states, dynamic blending based on movement speed, and all of this while maintaining 60fps. Get the math wrong and you see pops and jitters. Get the architecture wrong and adding new features becomes a nightmare of tangled dependencies.
 
 I approached this by splitting the problem in two: **BlendMotion** handles pure animation mathematics - skeleton hierarchies, pose blending, bone transformations - with zero engine dependencies. **GameEngine** handles integration - loading assets, managing components, rendering debug visualizations. This separation meant I could test BlendMotion independently, swap engines if needed, and reason about each system in isolation.
 
-The result? A system running 5 concurrent state machines with per-bone masking, 2D blend spaces for locomotion, layered upper/lower body animations, and smooth transitions between arbitrary states. More importantly: a codebase where adding features doesn't require rewiring the engine, and debugging math doesn't mean wading through rendering code.
+The result? A system running 4 concurrent state machines with per-bone masking, 2D blend spaces for locomotion, layered upper/lower body animations, and smooth transitions between arbitrary states. More importantly: a codebase where adding features doesn't require rewiring the engine, and debugging math doesn't mean wading through rendering code.
 
-# The four lessons I wish I had known before starting
+<br>
 
-## **256 words** Lesson 1: Start Simple - Build the foundation right
-I didn't start with 5 state machines and bone masking. I started with: "Can I load a skeleton and play one animation?" That's it. No blending, no transitions, no layers - just parse the data. evaluate poses, at time T, and apply transforms to bones.
+# The three lessons I wish I had known before starting
+
+### **Lesson 1: Start Simple - Build the foundation right**
+I didn't start with 4 state machines and bone masking. I started with: "Can I load a skeleton and play one animation?" That's it. No blending, no transitions, no layers - just parse the data. evaluate poses, at time T, and apply transforms to bones.
 
 This sounds obvious, but it's tempting to architect for the complex system you *want* rather than the simple system you *need first*. I've seen projects (including my own earlier attempts) collapse under the weight of premature abstraction - designing for "What if we need 10 blend layers?" before proving you blend 2 poses correctly.
 
@@ -60,7 +64,10 @@ Start simple. Prove it works. Then add one layer of complexity at a time.
   <source src="{{ '/assets/videos/single_animation.mp4' | relative_url }}" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-## **281 words** Lesson 2: Separation of Concerns isn't optional
+
+<br>
+
+### **Lesson 2: Separation of Concerns isn't optional**
 The moment I decided to split BlendMotion from the game engine, the project transformed from "my animation system" into "a reusable animation library." This wasn't just good architecture - it was a forcing function that made every design decision better.
 
 **BlendMotion** is pure animation mathematics. No OpenGL. No file handling. No engine components. Just skeletons, poses, blending algorithms, and state machines. It takes data in, transforms it mathematically, and outputs bone matrices. That's it.
@@ -80,7 +87,9 @@ The cost? An interface boundary. BlendMotion returns `std::vector<glm::mat4>`, t
 
 Separation of concerns isn't optional. It's the foundation that makes everything else possible.
 
-## **267 words** Lesson 3: Layering enabled complexity
+<br>
+
+### **Lesson 3: Layering enabled complexity**
 Early on, I had a character running around with smooth locomotion blending. Great. Then I needed the character to aim a weapon while running. My first instinct? "I'll just add another blend on top!"
 
 That's when I learned the hard way: **additive blending and layered blending are fundamentally different problems.**
@@ -130,17 +139,21 @@ The bone mask ignores the right arm and the legs, so the movement of the walk an
 
 Proper layering makes complex animation manageable instead of impossible.
 
-# **230 words** Technical Deep-Dive: The Evaluation pipeline
+<br>
+
+# Technical Deep-Dive: The Evaluation pipeline
 Understanding layering conceptually is one thing - implementing it is another. Here's the evaluation flow that runs every frame.
 
-#### The entry point
+#### **The entry point**
 ```cpp
 controller.layerController.Update(deltaTime);
 controller.layerController.Evaluate(finalPose, rootMotionDelta, wasExtracted);
 ```
 Every frame, the animation system updates all state machines (handling transitions, checking conditions), then evaluates them to produce the final bone matrices that drive character rendering.
 
-#### Step 1: Orchestrating Layer Composition
+<br>
+
+#### **Step 1: Orchestrating Layer Composition**
 The `Evaluate()` function orchestrates the entire process:
 ```cpp
 bool AnimationLayerController::Evaluate(...) {
@@ -160,7 +173,9 @@ bool AnimationLayerController::Evaluate(...) {
 ```
 The key insight: **composition happens in local transform space, hierarchy traversal happens once at the end.** This separation is critical for performance - `O(layers × bones + bones)` instead of `O(layers × bones²)`
 
-#### Step 2: Composing Layers
+<br>
+
+#### **Step 2: Composing Layers**
 `ComposeLayers()` is where the magic happens - each layer contributes its animation to the final result:
 ```cpp
 bool AnimationLayerController::ComposeLayers(...) {
@@ -197,7 +212,9 @@ bool AnimationLayerController::ComposeLayers(...) {
 ```
 **Why the conversion?** State machines output skinning matrices for efficiency, but layer blending requires local transforms for proper composition.
 
-#### Step 3: State Machine Evaluation
+<br>
+
+#### **Step 3: State Machine Evaluation**
 Each layer's state machine handles arbitrary complexity - single animations, blend spaces, or smooth transitions:
 
 ```cpp
@@ -227,7 +244,9 @@ bool StateMachine::Evaluate(...) {
 ```
 The state machine abstraction means layers don't care about internal complexity - simple or complex, the interface is identical.
 
-#### Step 4: Final Hierarchy Traversal
+<br>
+
+#### **Step 4: Final Hierarchy Traversal**
 Once all layers are composed, we traverse the skeleton hierarchy to compute final skinning matrices:
 ```cpp
 void AnimationEvaluator::ComputeBoneTransform(const Skeleton& _skeleton, 
@@ -251,7 +270,9 @@ void AnimationEvaluator::ComputeBoneTransform(const Skeleton& _skeleton,
 ```
 This recursive traversal accumulates parent transforms down the hierarchy. The offset matrix converts world space to skinning space for GPU rendering.
 
-#### The Architecture in Action
+<br>
+
+#### **The Architecture in Action**
 This pipeline demonstrates the three lessons: foundational simplicity (`ComputeBoneTransform` never changed), clean separation (BlendMotion vs engine), and independent layering (simple composition loop). Adding new layers requires zero changes to existing code.
 
 <video autoplay loop muted>
@@ -260,8 +281,10 @@ This pipeline demonstrates the three lessons: foundational simplicity (`ComputeB
   </video>
   This video showcases multiple layers in action together.
 
-# **125 words** Results & What's next
-The end result is a system running 5 concurrent state machines with per-bone masking, handling smooth locomotion blending, independent upper/lower body animations, and root motion extraction - all while managing more than 60fps. Performance profiling revealed that proper architecture matters more than micro-optimizations: clean separation and efficient evaluation paths gave far better gains than chasing cache-friendly data layouts.
+<br>
+
+# Results & What's next
+The end result is a system running 4 concurrent state machines with per-bone masking, handling smooth locomotion blending, independent upper/lower body animations, and root motion extraction - all while managing more than 60fps. Performance profiling revealed that proper architecture matters more than micro-optimizations: clean separation and efficient evaluation paths gave far better gains than chasing cache-friendly data layouts.
 
 The technical foundation supports multiple blend space evaluation methods including triangulation, RBF networks, and various 2D interpolation approaches.
 
@@ -269,12 +292,16 @@ Upcoming deep-dive posts will cover blend space mathematics, root motion extract
 
 The three lessons - start simple, separate concerns, layer complexity - apply far beyond animation systems. They're architectural principles for any complex system where "just add another feature" leads to collapse.
 
-# **93 words** Conclusion
+<br>
+
+# Conclusion
 Building BlendMotion taught me that **architecture decisions compound**. Starting simple gave me a solid foundation. Separating concerns made that foundation testable and maintainable. Layering enabled complexity without chaos. Each lesson enabled the next - rush any step and the whole structure weakens.
 
 For fellow students tackling complex systems: These principles apply whether you're building animation systems, physics engines, or rendering pipelines. The temptation to architect for the final system upfront is strong, but resist it. Build the simplest thing that works. Prove it's solid, then add one layer of complexity at a time.
 
 ![buas logo]({{ '/assets/images/buas.png' | relative_url }})
+
+<br>
 
 ## References
 
