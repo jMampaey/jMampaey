@@ -12,12 +12,11 @@ video {
 }
 </style>
 
-# Introduction
 <video autoplay loop muted>
   <source src="{{ '/assets/videos/impressive_video.mp4' | relative_url }}" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-This character is simultaneously running 4 different state machines with bone masking, blending between locomotion while playing distinct upper and lower body animations - all powered by a custom animation system built from scratch. Building this taught me 3 critical lessons: start simple, separate your concerns and layer your complexity. The challenge was designing BlendMotion - a pure animation mathematics library - that could integrate into any C++ game engine without forcing architectural compromises. 
+*This character is simultaneously running 4 different state machines with bone masking, blending between locomotion while playing distinct upper and lower body animations - all powered by a custom animation system built from scratch. Building this taught me 3 critical lessons: start simple, separate your concerns and layer your complexity. The challenge was designing BlendMotion - a pure animation mathematics library - that could integrate into any C++ game engine without forcing architectural compromises.*
 
 <br>
 
@@ -26,7 +25,7 @@ Animation systems are deceptively complex. On the surface, they're just "play an
 
 I approached this by splitting the problem in two: **BlendMotion** handles pure animation mathematics - skeleton hierarchies, pose blending, bone transformations - with zero engine dependencies. **GameEngine** handles integration - loading assets, managing components, rendering debug visualizations. This separation meant I could test BlendMotion independently, swap engines if needed, and reason about each system in isolation.
 
-The result? A system running 4 concurrent state machines with per-bone masking, 2D blend spaces for locomotion, layered upper/lower body animations, and smooth transitions between arbitrary states. More importantly: a codebase where adding features doesn't require rewiring the engine, and debugging math doesn't mean wading through rendering code.
+The result? A system running 4 concurrent state machines with per-bone masking, 2D blend spaces for locomotion, layered upper/lower body animations, and smooth transitions between arbitrary states. More importantly: a codebase where adding features doesn't require rewiring the engine, and animation bugs stay isolated from rendering code.
 
 <br>
 
@@ -53,7 +52,7 @@ AnimationEvaluator::Evaluate(*skeleton, animator.animationState, result);
 // Apply the final bone matrices
 animator.boneMatrices = result.boneMatrices;
 ```
-This is the entire update loop for simple animation playback. No state machines, no blend trees - just time advancement and pose evaluation. The 'Animator' component handles this path. while entities needing complex behavior add ad 'AnimationController' component that takes over with state machines.
+This is the entire update loop for simple animation playback. No state machines, no blend trees - just time advancement and pose evaluation. The 'Animator' component handles this path. while entities needing complex behavior add an 'AnimationController' component that takes over with state machines.
 
 Because this core was rock-solid and well-tested, I could layer complexity without constantly backtracking to fix fundamental issues. State machines? They just manage multiple 'AnimationState' instances. Blend spaces? They call 'Evaluate()' multiple times and blend the results. The foundation never changed.
 
@@ -123,8 +122,7 @@ This architecture scaled beautifully. Need a character to run, aim, and react to
   </video>
 </div>
 
-<p style="text-align: center; margin: 1rem 0;">
-These two videos show the separate animations that are played on top of each other with bone masking.</p>
+*These two videos show the separate animations that are played on top of each other with bone masking.*
 
 <div style="display: flex; justify-content: center; margin: 1rem 0;">
   <video autoplay loop muted style="width: 100%; max-width: 500px;">
@@ -133,7 +131,7 @@ These two videos show the separate animations that are played on top of each oth
   </video>
 </div>
 
-The bone mask ignores the right arm and the legs, so the movement of the walk animation still looks okay
+The bone mask ignores the right arm and the legs, so the movement of the walk animation still looks okay.
 
 **The takeaway:** Simple blending gets you far, but complex character animation needs layering with bone masks. Don't try to solve "walk while aiming" with clever blend weights - solve it with proper architectural separation. Each layer handles one concern, and the composition system brings them together.
 
@@ -279,7 +277,7 @@ This pipeline demonstrates the three lessons: foundational simplicity (`ComputeB
     <source src="{{ '/assets/videos/evaluate_pipeline.mp4' | relative_url }}" type="video/mp4">
     Your browser does not support the video tag.
   </video>
-  This video showcases multiple layers in action together.
+  *This video showcases multiple layers in action together.*
 
 <br>
 
